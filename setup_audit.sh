@@ -5,7 +5,7 @@ SETUP_FLAG="/opt/setup_audit_complete.flag"
 function install_packages() {
   echo "[+] Installing required packages..."
   apt-get update -qq
-  apt-get install -y vim grep scp rsyslog net-tools sha256sum cron
+  apt-get install -y vim grep rsyslog net-tools cron coreutils
 }
 
 function create_directories() {
@@ -26,17 +26,31 @@ Log Transfer Instructions
 
 1. Use 'scp' to securely copy log files to this directory from the $target VM.
    Example:
-     scp /var/log/sim/ais_feed.log audituser@vm-audit:/incident/archive/$target/
+     scp /var/log/...log audituser@vm-audit:/incident/archive/$target/
 
 2. Upon receipt, run:
-     sha256sum [filename] >> /incident/hash_records/$target_hashes.txt
+     sha256sum [filename] >> /incident/hash_records/${target}_hashes.txt
 
 3. Include timestamp in the entry manually, or run:
-     echo "\"$(date -u)\" \$(sha256sum [filename])" >> /incident/hash_records/$target_hashes.txt
+     echo "\$(date -u) \$(sha256sum [filename])" >> /incident/hash_records/${target}_hashes.txt
 
 4. Report any discrepancies with reference hashes to Legal/Coordinator immediately.
+
+Note: Ensure that the 'audituser' account exists and has write permissions to these directories.
 EOF
   done
+}
+
+function preload_logs() {
+  echo "[+] Creating placeholder logs for realism..."
+  echo "2025-06-04T08:00:00Z AIS_MSG: Preloaded" > /incident/archive/coretech/ais_feed.log
+  echo "2025-06-04T08:00:00Z Gateway: Preloaded" > /incident/archive/gateway/vendor.log
+  echo "2025-06-04T08:00:00Z CCTV Log: Preloaded" > /incident/archive/opsnode/stream.log
+
+  echo "[+] Creating baseline hashes..."
+  sha256sum /incident/archive/coretech/ais_feed.log > /incident/hash_records/coretech_hashes.txt
+  sha256sum /incident/archive/gateway/vendor.log > /incident/hash_records/gateway_hashes.txt
+  sha256sum /incident/archive/opsnode/stream.log > /incident/hash_records/opsnode_hashes.txt
 }
 
 function mark_complete() {
@@ -65,6 +79,7 @@ fi
 install_packages
 create_directories
 create_readme
+preload_logs
 mark_complete
 
 echo "[✓] vm-audit setup complete. Ready for scenario."
