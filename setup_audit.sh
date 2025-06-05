@@ -4,8 +4,8 @@ SETUP_FLAG="/opt/setup_audit_complete.flag"
 
 function install_packages() {
   echo "[+] Installing required packages..."
-  apt-get update -qq
-  apt-get install -y vim grep rsyslog net-tools cron coreutils
+  apt-get update -qq >/dev/null
+  DEBIAN_FRONTEND=noninteractive apt-get install -y vim grep rsyslog net-tools cron coreutils sha256sum >/dev/null 2>&1
 }
 
 function create_directories() {
